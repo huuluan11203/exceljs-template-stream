@@ -1935,6 +1935,12 @@ export namespace stream {
 			 * Styles can add some performance overhead. Default is false
 			 */
 			useStyles: boolean;
+
+			/**
+			 * An existing Workbook or workbook model to use as the template.
+			 * Template sheets, rows, columns, styles, and merged cells are preserved.
+			 */
+			template: Workbook | object;
 		}
 
 		interface ArchiverZipOptions {
