@@ -218,6 +218,44 @@ describe('WorkbookWriter', () => {
         });
     });
 
+    it('preserves template styles and merged cells', async () => {
+      const template = new ExcelJS.Workbook();
+      const templateWorksheet = template.addWorksheet('Template');
+      templateWorksheet.mergeCells('A1:C1');
+      templateWorksheet.getCell('A1').value = 'Title';
+      templateWorksheet.getCell('A1').font = {
+        name: 'Arial',
+        bold: true,
+        size: 18,
+      };
+      templateWorksheet.getCell('A1').alignment = {horizontal: 'center'};
+      templateWorksheet.getColumn(2).width = 24;
+
+      const wb = new ExcelJS.stream.xlsx.WorkbookWriter({
+        filename: TEST_XLSX_FILE_NAME,
+        template,
+      });
+      const ws = wb.getWorksheet('Template');
+      ws.getCell('B2').value = 'Populated';
+      await wb.commit();
+
+      const result = new ExcelJS.Workbook();
+      await result.xlsx.readFile(TEST_XLSX_FILE_NAME);
+      const worksheet = result.getWorksheet('Template');
+
+      expect(worksheet.getCell('A1').font).to.deep.equal({
+        name: 'Arial',
+        bold: true,
+        size: 18,
+      });
+      expect(worksheet.getCell('A1').alignment).to.deep.equal({
+        horizontal: 'center',
+      });
+      expect(worksheet.getCell('B2').value).to.equal('Populated');
+      expect(worksheet.getColumn(2).width).to.equal(24);
+      expect(worksheet.getCell('B1').isMerged).to.equal(true);
+    });
+
     it('rich text', () => {
       const options = {
         filename: TEST_XLSX_FILE_NAME,
